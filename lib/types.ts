@@ -4,6 +4,13 @@ export type Resource = {
   url: string;
 };
 
+export type AuthorProfile = {
+  name: string;
+  role: string;
+  bio: string;
+  socialLinks: { label: string; url: string }[];
+};
+
 export type Lesson = {
   id: number;
   title: string;
@@ -13,10 +20,4 @@ export type Lesson = {
   resources: Resource[];
   links: { label: string; url: string }[];
   comments: string[];
-  author: {
-    name: string;
-    role: string;
-    bio: string;
-    socialLinks: { label: string; url: string }[];
-  };
 };

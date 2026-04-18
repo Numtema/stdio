@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { LIQUID_GLASS } from "@/lib/constants";
 
-export function CommentsSection({ comments, onAddComment }: { comments: string[]; onAddComment: (text: string) => void; }) {
+export function CommentsSection({ comments, onAddComment, onDeleteComment }: { comments: string[]; onAddComment: (text: string) => void; onDeleteComment?: (index: number) => void }) {
   const [draft, setDraft] = useState("");
 
   return (
@@ -42,11 +42,21 @@ export function CommentsSection({ comments, onAddComment }: { comments: string[]
           {comments.map((comment, index) => (
             <motion.div
               key={`${comment}-${index}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-[20px] border border-white/5 bg-white/[0.01] p-4 text-sm leading-relaxed text-white/70"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95, height: 0, margin: 0 }}
+              className="group relative rounded-[20px] border border-white/5 bg-white/[0.01] p-4 text-sm leading-relaxed text-white/70"
             >
-               {comment}
+               <div className="pr-8">{comment}</div>
+               {onDeleteComment && (
+                 <button
+                   onClick={() => onDeleteComment(index)}
+                   className="absolute top-1/2 right-4 -translate-y-1/2 p-2 rounded-full bg-red-500/10 text-red-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/20"
+                   title="Supprimer"
+                 >
+                   <Trash2 className="h-4 w-4" />
+                 </button>
+               )}
             </motion.div>
           ))}
         </AnimatePresence>

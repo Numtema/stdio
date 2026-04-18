@@ -7,14 +7,15 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { LessonList } from "@/components/lesson/LessonList";
 import { LessonDetail } from "@/components/lesson/LessonDetail";
 import { PublishForm } from "@/components/lesson/PublishForm";
+import { ProfileForm } from "@/components/lesson/ProfileForm";
 import { AllResources } from "@/components/lesson/AllResources";
 import { AllComments } from "@/components/lesson/AllComments";
 import { useLessons } from "@/hooks/use-lessons";
 
-type ViewState = "home" | "detail" | "publish" | "videos" | "resources" | "comments";
+type ViewState = "home" | "detail" | "publish" | "videos" | "resources" | "comments" | "profile";
 
 export default function Platform() {
-  const { lessons, isLoaded, addComment, addLesson } = useLessons();
+  const { lessons, profile, isLoaded, addComment, deleteComment, addLesson, updateLesson, updateProfile } = useLessons();
   const [route, setRoute] = useState<ViewState>("home");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -23,12 +24,12 @@ export default function Platform() {
     [lessons, selectedId],
   );
 
-  // Derive logical view to render taking selections into account
   const viewToRender = 
     route === "detail" ? "detail" : 
     route === "publish" ? "publish" : 
     route === "resources" ? "resources" : 
     route === "comments" ? "comments" : 
+    route === "profile" ? "profile" :
     "home";
 
   return (
@@ -51,7 +52,6 @@ export default function Platform() {
               setSelectedId(null);
             } else {
               setRoute(v as ViewState);
-              setSelectedId(null);
             }
           }}
         />
@@ -62,36 +62,62 @@ export default function Platform() {
                <div key="loader" className="flex items-center justify-center pt-24 text-white/20">
                  <div className="h-2 w-2 animate-ping rounded-full bg-white/40" />
                </div>
-            ) : viewToRender === "publish" ? (
-              <PublishForm 
-                key="publish" 
+            ) : viewToRender === "profile" ? (
+              <ProfileForm 
+                key="profile" 
+                profile={profile}
                 onSave={(data) => {
-                   const newId = addLesson(data);
-                   setSelectedId(newId);
-                   setRoute("detail");
+                   updateProfile(data);
+                   setRoute("home");
                 }} 
                 onCancel={() => setRoute("home")} 
+              />
+            ) : viewToRender === "publish" ? (
+              <PublishForm 
+                key={selectedLesson ? `edit-${selectedLesson.id}` : "publish"} 
+                initialData={selectedLesson}
+                onSave={(data) => {
+                   if (selectedLesson) {
+                       updateLesson(selectedLesson.id, data);
+                       setRoute("detail");
+                   } else {
+                       const newId = addLesson(data);
+                       setSelectedId(newId);
+                       setRoute("detail");
+                   }
+                }} 
+                onCancel={() => {
+                   if (selectedLesson) setRoute("detail");
+                   else setRoute("home");
+                }} 
               />
             ) : viewToRender === "detail" && selectedLesson ? (
               <LessonDetail
                 key="detail"
                 lesson={selectedLesson}
+                profile={profile}
+                onEditLesson={() => setRoute("publish")}
                 onBack={() => setRoute("home")}
                 onAddComment={addComment}
+                onDeleteComment={deleteComment}
               />
             ) : viewToRender === "resources" ? (
               <AllResources key="resources" lessons={lessons} />
             ) : viewToRender === "comments" ? (
-              <AllComments key="comments" lessons={lessons} />
+              <AllComments key="comments" lessons={lessons} onDeleteComment={deleteComment} />
             ) : (
               <LessonList 
                 key="list" 
-                lessons={lessons} 
+                lessons={lessons}
+                profile={profile}
                 onSelect={(id) => {
                   setSelectedId(id);
                   setRoute("detail");
                 }} 
-                onPublish={() => setRoute("publish")}
+                onPublish={() => {
+                  setSelectedId(null);
+                  setRoute("publish");
+                }}
               />
             )}
           </AnimatePresence>

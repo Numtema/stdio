@@ -1,4 +1,14 @@
-import { Lesson } from "./types";
+import { Lesson, AuthorProfile } from "./types";
+
+export const initialProfile: AuthorProfile = {
+  name: "Nümtema Studio",
+  role: "Auteur du module",
+  bio: "Création de parcours vidéo simples, lisibles et utiles, avec documents à télécharger et commentaires ouverts.",
+  socialLinks: [
+    { label: "YouTube", url: "https://www.youtube.com/" },
+    { label: "Instagram", url: "https://www.instagram.com/" },
+  ],
+};
 
 export const initialLessons: Lesson[] = [
   {
@@ -19,16 +29,7 @@ export const initialLessons: Lesson[] = [
     comments: [
       "Très clair. J’aime le côté simple et direct.",
       "Le Drive partagé aide bien à suivre la vidéo.",
-    ],
-    author: {
-      name: "Nümtema Studio",
-      role: "Auteur du module",
-      bio: "Création de parcours vidéo simples, lisibles et utiles, avec documents à télécharger et commentaires ouverts.",
-      socialLinks: [
-        { label: "YouTube", url: "https://www.youtube.com/" },
-        { label: "Instagram", url: "https://www.instagram.com/" },
-      ],
-    },
+    ]
   },
   {
     id: 2,
@@ -47,15 +48,6 @@ export const initialLessons: Lesson[] = [
     comments: [
       "La structure est propre.",
       "J’aimerais un exemple supplémentaire pour la partie 2.",
-    ],
-    author: {
-      name: "Nümtema Studio",
-      role: "Auteur du module",
-      bio: "Des vidéos pensées pour être comprises vite, appliquées vite, et enrichies par une petite base documentaire utile.",
-      socialLinks: [
-        { label: "YouTube", url: "https://www.youtube.com/" },
-        { label: "LinkedIn", url: "https://www.linkedin.com/" },
-      ],
-    },
+    ]
   },
 ];

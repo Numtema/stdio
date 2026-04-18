@@ -11,14 +11,14 @@ export function Sidebar({
     { id: "home", label: "Accueil" },
     { id: "videos", label: "Vidéos" },
     { id: "resources", label: "Ressources" },
-    { id: "comments", label: "Commentaires" }
+    { id: "comments", label: "Commentaires" },
+    { id: "profile", label: "Réglages Profil" }
   ];
 
   return (
     <aside className={`h-fit rounded-[32px] p-4 lg:sticky lg:top-28 ${LIQUID_GLASS}`}>
       <nav className="space-y-1.5 border-b border-white/10 pb-4">
         {items.map((item) => {
-          // If view is detail, "videos" item looks active, else exact match
           const active = currentView === item.id || (currentView === "detail" && item.id === "videos");
           
           return (

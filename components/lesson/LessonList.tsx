@@ -2,15 +2,17 @@
 
 import { motion } from "motion/react";
 import { Play, Clock, Link as LinkIcon, MessageSquare, Plus } from "lucide-react";
-import { Lesson } from "@/lib/types";
+import { Lesson, AuthorProfile } from "@/lib/types";
 import { LIQUID_GLASS, LIQUID_GLASS_STRONG } from "@/lib/constants";
 
 export function LessonList({ 
-  lessons, 
+  lessons,
+  profile,
   onSelect, 
   onPublish 
 }: { 
   lessons: Lesson[]; 
+  profile: AuthorProfile;
   onSelect: (id: number) => void;
   onPublish: () => void;
 }) {
@@ -33,7 +35,7 @@ export function LessonList({
             L&apos;essentiel, sans le bruit.
           </h2>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/50">
-            Intégrez vos vidéos YouTube, documentez vos leçons et connectez vos dossiers Drive extérieurs. Une expérience centrée sur la fluidité d&apos;apprentissage.
+            Intégrez vos vidéos YouTube, documentez vos leçons et connectez vos dossiers. Une expérience centrée sur la fluidité d&apos;apprentissage.
           </p>
         </div>
       </section>
@@ -102,7 +104,7 @@ export function LessonList({
             </div>
 
             <div className="mt-4 flex w-full items-center justify-between border-t border-white/5 pt-4">
-              <span className="text-sm font-medium text-white/50">{lesson.author.name}</span>
+              <span className="text-sm font-medium text-white/50">{profile.name}</span>
               <span className="text-sm font-medium text-indigo-300 transition-colors group-hover:text-indigo-200">
                 Voir le détail →
               </span>

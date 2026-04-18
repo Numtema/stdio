@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Lesson, Resource } from "@/lib/types";
-import { initialLessons } from "@/lib/data";
+import { Lesson, Resource, AuthorProfile } from "@/lib/types";
+import { initialLessons, initialProfile } from "@/lib/data";
 
 export function useLessons() {
   const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
+  const [profile, setProfile] = useState<AuthorProfile>(initialProfile);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -22,8 +23,15 @@ export function useLessons() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setLessons(migrated);
       }
+
+      const storedProfile = localStorage.getItem("premium_video_profile");
+      if (storedProfile) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProfile(JSON.parse(storedProfile));
+      }
+
     } catch (error) {
-      console.error("Failed to load lessons from storage", error);
+      console.error("Failed to load data from storage", error);
     } finally {
       setIsLoaded(true);
     }
@@ -33,17 +41,28 @@ export function useLessons() {
     if (isLoaded) {
       try {
         localStorage.setItem("premium_video_lessons", JSON.stringify(lessons));
+        localStorage.setItem("premium_video_profile", JSON.stringify(profile));
       } catch (error) {
-        console.error("Failed to save lessons to storage", error);
+        console.error("Failed to save data to storage", error);
       }
     }
-  }, [lessons, isLoaded]);
+  }, [lessons, profile, isLoaded]);
 
   function addComment(lessonId: number, text: string) {
     setLessons((current) =>
       current.map((lesson) =>
         lesson.id === lessonId
           ? { ...lesson, comments: [text, ...lesson.comments] }
+          : lesson
+      )
+    );
+  }
+
+  function deleteComment(lessonId: number, commentIndex: number) {
+    setLessons((current) =>
+      current.map((lesson) =>
+        lesson.id === lessonId
+          ? { ...lesson, comments: lesson.comments.filter((_, idx) => idx !== commentIndex) }
           : lesson
       )
     );
@@ -58,18 +77,16 @@ export function useLessons() {
       duration: data.duration || "Non spécifié",
       resources: data.resources,
       links: [],
-      comments: [],
-      author: {
-        name: "Auteur",
-        role: "Éditeur du module",
-        bio: "Partage de connaissances et méthodes via cette plateforme.",
-        socialLinks: []
-      }
+      comments: []
     };
     
     setLessons((prev) => [newLesson, ...prev]);
     return newLesson.id;
   }
 
-  return { lessons, isLoaded, addComment, addLesson };
+  function updateLesson(id: number, data: { title: string; summary: string; youtubeUrl: string; duration: string; resources: Resource[] }) {
+    setLessons((prev) => prev.map(l => l.id === id ? { ...l, ...data } : l));
+  }
+
+  return { lessons, profile, isLoaded, addComment, deleteComment, addLesson, updateLesson, updateProfile: setProfile };
 }

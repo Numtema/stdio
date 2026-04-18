@@ -2,50 +2,37 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, X, Video, Link as LinkIcon, Edit3, Clock, ArrowLeft } from "lucide-react";
+import { Link as LinkIcon, Plus, X, User, Edit3, ArrowLeft } from "lucide-react";
 import { LIQUID_GLASS, LIQUID_GLASS_STRONG } from "@/lib/constants";
-import { Resource, Lesson } from "@/lib/types";
+import { AuthorProfile } from "@/lib/types";
 
-type PublishFormProps = {
-  initialData?: Lesson | null;
-  onSave: (data: { title: string; summary: string; youtubeUrl: string; duration: string; resources: Resource[] }) => void;
+export function ProfileForm({
+  profile,
+  onSave,
+  onCancel
+}: {
+  profile: AuthorProfile;
+  onSave: (data: AuthorProfile) => void;
   onCancel: () => void;
-};
+}) {
+  const [name, setName] = useState(profile.name);
+  const [role, setRole] = useState(profile.role);
+  const [bio, setBio] = useState(profile.bio);
+  const [links, setLinks] = useState(profile.socialLinks);
 
-export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps) {
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [youtubeUrl, setYoutubeUrl] = useState(initialData?.youtubeUrl || "");
-  const [duration, setDuration] = useState(initialData?.duration || "");
-  const [summary, setSummary] = useState(initialData?.summary || "");
-  
-  const [resources, setResources] = useState<Resource[]>(
-    initialData?.resources?.length 
-      ? initialData.resources 
-      : [{ id: Date.now().toString(), name: "", url: "" }]
-  );
-
-  const handleAddResource = () => {
-    setResources([...resources, { id: Date.now().toString(), name: "", url: "" }]);
-  };
-
-  const handleRemoveResource = (id: string) => {
-    setResources(resources.filter(r => r.id !== id));
-  };
-
-  const updateResource = (id: string, field: 'name' | 'url', value: string) => {
-    setResources(resources.map(r => r.id === id ? { ...r, [field]: value } : r));
+  const handleAddLink = () => setLinks([...links, { label: "", url: "" }]);
+  const handleRemoveLink = (idx: number) => setLinks(links.filter((_, i) => i !== idx));
+  const updateLink = (idx: number, field: 'label'|'url', val: string) => {
+    setLinks(links.map((l, i) => i === idx ? { ...l, [field]: val } : l));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !youtubeUrl.trim() || !summary.trim()) return;
-    
     onSave({
-      title,
-      summary,
-      youtubeUrl,
-      duration,
-      resources: resources.filter(r => r.name.trim() !== "" && r.url.trim() !== "")
+      name,
+      role,
+      bio,
+      socialLinks: links.filter(l => l.label.trim() && l.url.trim())
     });
   };
 
@@ -72,48 +59,35 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
         
         <div className="relative z-10 space-y-8">
            <h2 className="font-heading text-4xl tracking-tight text-white md:text-5xl">
-             {initialData ? "Modifier la vidéo" : "Publier un module"}
+             Réglages du Profil
            </h2>
            <p className="text-lg text-white/50">
-             Configurez la vidéo et liez vos dossiers partagés (Drive, Notion, DropBox) accessibles en un clic.
+             Vos informations créateur s&apos;afficheront sur chaque vidéo.
            </p>
 
            <div className="space-y-6 pt-4">
-             <div className="space-y-2">
-               <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-                 <Edit3 className="h-4 w-4 text-white/40" /> Titre de la leçon
-               </label>
-               <input 
-                 value={title}
-                 onChange={(e) => setTitle(e.target.value)}
-                 required
-                 placeholder="Ex: Architecture de base pour scalabilité"
-                 className="w-full rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
-               />
-             </div>
-
              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                <div className="space-y-2">
                  <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-                   <Video className="h-4 w-4 text-white/40" /> Lien YouTube
+                   <User className="h-4 w-4 text-white/40" /> Nom
                  </label>
                  <input 
-                   value={youtubeUrl}
-                   onChange={(e) => setYoutubeUrl(e.target.value)}
+                   value={name}
+                   onChange={(e) => setName(e.target.value)}
                    required
-                   placeholder="https://youtu.be/..."
+                   placeholder="Ex: Studio Nümtema"
                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
                  />
                </div>
 
                <div className="space-y-2">
                  <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-                   <Clock className="h-4 w-4 text-white/40" /> Durée indicative
+                   <Edit3 className="h-4 w-4 text-white/40" /> Sous-titre / Rôle
                  </label>
                  <input 
-                   value={duration}
-                   onChange={(e) => setDuration(e.target.value)}
-                   placeholder="Ex: 12 min"
+                   value={role}
+                   onChange={(e) => setRole(e.target.value)}
+                   placeholder="Ex: Expert Architecture"
                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
                  />
                </div>
@@ -121,14 +95,14 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
 
              <div className="space-y-2">
                <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-                 Documentation / Résumé
+                 Bio contextuelle
                </label>
                <textarea 
-                 value={summary}
-                 onChange={(e) => setSummary(e.target.value)}
+                 value={bio}
+                 onChange={(e) => setBio(e.target.value)}
                  required
-                 rows={4}
-                 placeholder="De quoi parle cette vidéo ? Pourquoi la regarder ?"
+                 rows={3}
+                 placeholder="Quelques mots sur vous et ce que vous construisez..."
                  className="w-full resize-none rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
                />
              </div>
@@ -139,12 +113,12 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
       <section className={`rounded-[32px] p-8 md:p-12 ${LIQUID_GLASS}`}>
          <div className="mb-8 flex items-center justify-between gap-4">
            <div>
-             <h3 className="mb-2 font-heading text-3xl text-white">Ressources & Dossiers partagés</h3>
-             <p className="text-sm text-white/40">Ajoutez des liens externes cliquables pour le lecteur.</p>
+             <h3 className="mb-2 font-heading text-3xl text-white">Réseaux Sociaux</h3>
+             <p className="text-sm text-white/40">Liens vers X, YouTube, LinkedIn...</p>
            </div>
            <button 
              type="button"
-             onClick={handleAddResource}
+             onClick={handleAddLink}
              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
            >
              <Plus className="h-4 w-4" /> Ajouter
@@ -153,24 +127,24 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
 
          <div className="space-y-4">
            <AnimatePresence>
-             {resources.length === 0 && (
-               <p className="py-4 text-center text-sm italic text-white/30">Aucune ressource pour le moment.</p>
+             {links.length === 0 && (
+               <p className="py-4 text-center text-sm italic text-white/30">Aucun lien ajouté.</p>
              )}
-             {resources.map((res) => (
+             {links.map((link, idx) => (
                <motion.div 
-                 key={res.id}
+                 key={idx}
                  initial={{ opacity: 0, height: 0 }}
                  animate={{ opacity: 1, height: "auto" }}
                  exit={{ opacity: 0, height: 0 }}
                  className="group flex flex-col items-start gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4 md:flex-row md:items-center"
                >
                  <div className="w-full flex-1 space-y-1">
-                   <label className="ml-1 text-xs text-white/40">Nom du lien / dossier</label>
+                   <label className="ml-1 text-xs text-white/40">Label</label>
                    <input
-                     value={res.name}
-                     onChange={(e) => updateResource(res.id, 'name', e.target.value)}
-                     placeholder="Ex: Dossier Drive, Support Notion..."
-                     className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5 disabled:opacity-50"
+                     value={link.label}
+                     onChange={(e) => updateLink(idx, 'label', e.target.value)}
+                     placeholder="Ex: LinkedIn, Twitter"
+                     className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
                    />
                  </div>
                  <div className="w-full flex-[1.5] space-y-1">
@@ -179,15 +153,15 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
                      <div className="relative flex-1">
                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
                        <input
-                         value={res.url}
-                         onChange={(e) => updateResource(res.id, 'url', e.target.value)}
+                         value={link.url}
+                         onChange={(e) => updateLink(idx, 'url', e.target.value)}
                          placeholder="https://..."
                          className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-10 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/20 focus:border-indigo-500/50 focus:bg-white/5"
                        />
                      </div>
                      <button
                        type="button"
-                       onClick={() => handleRemoveResource(res.id)}
+                       onClick={() => handleRemoveLink(idx)}
                        className="rounded-xl border border-white/5 bg-red-500/10 p-3 text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
                      >
                        <X className="h-5 w-5" />
@@ -210,10 +184,10 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
         </button>
         <button
           type="submit"
-          disabled={!title || !youtubeUrl || !summary}
+          disabled={!name || !bio}
           className="rounded-full bg-white px-10 py-3.5 font-semibold text-black transition-transform hover:scale-[0.98] active:scale-[0.95] disabled:opacity-50 disabled:hover:scale-100"
         >
-          {initialData ? "Mettre à jour" : "Mettre en ligne"}
+          Sauvegarder
         </button>
       </div>
     </motion.form>
