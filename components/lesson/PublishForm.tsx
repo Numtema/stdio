@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, X, Video, Link as LinkIcon, Edit3, Clock, ArrowLeft } from "lucide-react";
+import { Plus, X, Video, Link as LinkIcon, Edit3, Clock, ArrowLeft, Wand2, Loader2 } from "lucide-react";
 import { LIQUID_GLASS, LIQUID_GLASS_STRONG } from "@/lib/constants";
 import { Resource, Lesson } from "@/lib/types";
+import { GoogleGenAI } from "@google/genai";
 
 type PublishFormProps = {
   initialData?: Lesson | null;
@@ -17,6 +18,7 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
   const [youtubeUrl, setYoutubeUrl] = useState(initialData?.youtubeUrl || "");
   const [duration, setDuration] = useState(initialData?.duration || "");
   const [summary, setSummary] = useState(initialData?.summary || "");
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const [resources, setResources] = useState<Resource[]>(
     initialData?.resources?.length 
@@ -34,6 +36,33 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
 
   const updateResource = (id: string, field: 'name' | 'url', value: string) => {
     setResources(resources.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const handleGenerateAI = async () => {
+    if (!title.trim()) {
+      alert("Veuillez d'abord saisir un titre pour que l'IA puisse s'en inspirer.");
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
+      const prompt = `Agis comme un formateur professionnel. Rédige un court résumé accrocheur (3 ou 4 lignes maximum) d'un module vidéo intitulé "${title}". Le résumé doit expliquer aux apprenants de quoi par le module et pourquoi il est important d'acquérir ces compétences. Ne mets pas de titre, juste le corps du résumé.`;
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+      });
+
+      if (response.text) {
+        setSummary(response.text.trim());
+      }
+    } catch (err) {
+      console.error("Erreur avec Gemini API:", err);
+      alert("La génération IA a échoué. Veuillez réessayer.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -120,9 +149,20 @@ export function PublishForm({ initialData, onSave, onCancel }: PublishFormProps)
              </div>
 
              <div className="space-y-2">
-               <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-                 Documentation / Résumé
-               </label>
+               <div className="flex items-center justify-between">
+                 <label className="flex items-center gap-2 text-sm font-medium text-white/70">
+                   Documentation / Résumé
+                 </label>
+                 <button 
+                   type="button"
+                   onClick={handleGenerateAI}
+                   disabled={isGenerating || !title.trim()}
+                   className="flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/20 disabled:opacity-50"
+                 >
+                   {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                   {isGenerating ? "Génération..." : "Générer avec l'IA"}
+                 </button>
+               </div>
                <textarea 
                  value={summary}
                  onChange={(e) => setSummary(e.target.value)}
